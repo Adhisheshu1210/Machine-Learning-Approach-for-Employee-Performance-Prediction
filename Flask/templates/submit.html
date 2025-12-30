@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Employee Productivity Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* ===== DIGITAL-EKO CYBER GLASS THEME (Variant 2) ===== */
+
+body {
+  margin: 0;
+  font-family: "Montserrat", system-ui, Arial;
+  background: linear-gradient(160deg, #051018 0%, #02060b 60%, #001f18 100%);
+  color: #e8fff3;
+  overflow-x: hidden;
+}
+
+/* flowing ambient light */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(800px 300px at 10% -10%, rgba(0,255,140,.35), transparent),
+              radial-gradient(900px 400px at 90% 110%, rgba(0,200,255,.28), transparent);
+  filter: blur(40px);
+  opacity: .7;
+  pointer-events: none;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-top: 18px;
+  font-weight: 600;
+  letter-spacing: .6px;
+}
+
+.header b {
+  color: #7dffca;
+  text-shadow: 0 0 10px rgba(0,255,170,.4);
+}
+
+/* Grid Layout */
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 30px;
+}
+
+/* ===== GLASS PANEL CHART BOX ===== */
+.chart-box {
+  position: relative;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(0,30,25,.55), rgba(0,10,15,.75));
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,255,170,.25);
+
+  box-shadow:
+    0 8px 28px rgba(0,0,0,.6),
+    inset 0 0 20px rgba(0,255,170,.08);
+
+  transform: translateY(18px) scale(.98);
+  opacity: 0;
+
+  animation: slideIn 0.9s ease forwards;
+}
+
+/* stagger animation timing */
+.chart-box:nth-child(2) { animation-delay: .15s; }
+.chart-box:nth-child(3) { animation-delay: .3s; }
+.chart-box:nth-child(4) { animation-delay: .45s; }
+.chart-box:nth-child(5) { animation-delay: .6s; }
+.chart-box:nth-child(6) { animation-delay: .75s; }
+.chart-box:nth-child(7) { animation-delay: .9s; }
+.chart-box:nth-child(8) { animation-delay: 1.05s; }
+.chart-box:nth-child(9) { animation-delay: 1.2s; }
+.chart-box:nth-child(10) { animation-delay: 1.35s; }
+
+@keyframes slideIn {
+  from { transform: translateY(24px) scale(.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* glowing accent strip */
+.chart-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: linear-gradient(120deg,
+      transparent,
+      rgba(0,255,170,.55),
+      transparent
+  );
+  opacity: .25;
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+/* hover interaction */
+.chart-box:hover {
+  transform: translateY(-8px) scale(1.01);
+  border-color: rgba(0,255,170,.6);
+  box-shadow:
+    0 0 0 1px rgba(0,255,170,.45),
+    0 14px 40px rgba(0,255,150,.25),
+    inset 0 0 30px rgba(0,255,170,.18);
+  transition: .35s ease;
+}
+
+/* moving light sweep */
+.chart-box::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    rgba(0,255,200,.35),
+    transparent 25%
+  );
+  border-radius: 50%;
+  animation: sweep 5s linear infinite;
+  opacity: .18;
+  pointer-events: none;
+}
+
+@keyframes sweep {
+  to { transform: rotate(360deg); }
+}
+
+/* Canvas size */
+canvas {
+  width: 100% !important;
+  height: 270px !important;
+}
+
+/* Minimal cyber scrollbar */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#00ffb3, #00c7ff);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,255,170,.08);
+}
+.links {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.links a {
+  text-decoration: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+
+  background: #0f2a22;
+  color: #a8ffe0;
+  border: 1px solid #2fcf9b;
+
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+
+  transition: 0.25s ease;
+}
+
+.links a:hover {
+  background: #19b57e;
+  color: #ffffff;
+}
+
+</style>
+</head>
+
+<body>
+  <div class="links">
+    <a href="/predict">Predict Employee Performance</a>
+    <a href="/">Home</a>
+  </div>
+
+<h2 class="header">
+Employee Performance Prediction: <b>{{ prediction_value }}</b><br>
+Status: <b>{{ productivity_label }}</b>
+</h2>
+
+<div class="container">
+
+  <div class="chart-box"><canvas id="barChart"></canvas></div>
+  <div class="chart-box"><canvas id="pieChart"></canvas></div>
+  <div class="chart-box"><canvas id="lineChart"></canvas></div>
+
+  <div class="chart-box"><canvas id="stackedArea"></canvas></div>
+  <div class="chart-box"><canvas id="stackedColumn"></canvas></div>
+  <div class="chart-box"><canvas id="radarChart"></canvas></div>
+
+  <div class="chart-box"><canvas id="polarChart"></canvas></div>
+  <div class="chart-box"><canvas id="hBarChart"></canvas></div>
+  <div class="chart-box"><canvas id="doughnutChart"></canvas></div>
+
+  <div class="chart-box"><canvas id="mixedChart"></canvas></div>
+
+</div>
+
+<script>
+const data = {{ chart_data|tojson }};
+
+// ---------------- BAR ----------------
+new Chart(barChart, {
+  type: "bar",
+  data: {
+    labels: ["Target", "Predicted"],
+    datasets: [{ label: "Productivity", data: [data.target, data.predicted] }]
+  }
+});
+
+// ---------------- PIE ----------------
+new Chart(pieChart, {
+  type: "pie",
+  data: {
+    labels: ["Idle Time", "Over Time", "Incentive"],
+    datasets: [{ data: [data.idle_time, data.overtime, data.incentive] }]
+  }
+});
+
+// ---------------- LINE ----------------
+new Chart(lineChart, {
+  type: "line",
+  data: {
+    labels: ["Workers", "Target", "Predicted"],
+    datasets: [{
+      label: "Performance Trend",
+      fill: false,
+      data: [data.workers, data.target, data.predicted]
+    }]
+  }
+});
+
+// ---------------- STACKED AREA ----------------
+new Chart(stackedArea, {
+  type: "line",
+  data: {
+    labels: ["Idle", "Overtime", "Incentive"],
+    datasets: [{
+      label: "Contribution",
+      fill: true,
+      data: [data.idle_time, data.overtime, data.incentive]
+    }]
+  }
+});
+
+// ---------------- STACKED COLUMN ----------------
+new Chart(stackedColumn, {
+  type: "bar",
+  data: {
+    labels: ["Workers", "Target", "Predicted"],
+    datasets: [{
+      label: "Values",
+      data: [data.workers, data.target, data.predicted],
+      stack: "stack1"
+    }]
+  },
+  options: { scales: { x: { stacked: true }, y: { stacked: true } } }
+});
+
+// ---------------- RADAR (Performance Profile) ----------------
+new Chart(radarChart, {
+  type: "radar",
+  data: {
+    labels: ["Target", "Predicted", "Incentive", "Idle Time", "Overtime"],
+    datasets: [{
+      label: "Performance Profile",
+      data: [
+        data.target,
+        data.predicted,
+        data.incentive,
+        data.idle_time,
+        data.overtime
+      ]
+    }]
+  }
+});
+
+// ---------------- POLAR AREA (Workforce Impact) ----------------
+new Chart(polarChart, {
+  type: "polarArea",
+  data: {
+    labels: ["Workers", "Idle Men", "Incentive"],
+    datasets: [{
+      data: [data.workers, data.idle_time, data.incentive]
+    }]
+  }
+});
+
+// ---------------- HORIZONTAL BAR (Efficiency vs Idle) ----------------
+new Chart(hBarChart, {
+  type: "bar",
+  data: {
+    labels: ["Predicted Productivity", "Idle Time"],
+    datasets: [{
+      label: "Efficiency Comparison",
+      data: [data.predicted, data.idle_time]
+    }]
+  },
+  options: {
+    indexAxis: "y"
+  }
+});
+
+// ---------------- DOUGHNUT (Productivity Share) ----------------
+new Chart(doughnutChart, {
+  type: "doughnut",
+  data: {
+    labels: ["Target Productivity", "Predicted Productivity"],
+    datasets: [{
+      data: [data.target, data.predicted]
+    }]
+  }
+});
+
+// ---------------- MIXED CHART (Trend vs Benchmark) ----------------
+new Chart(mixedChart, {
+  data: {
+    labels: ["Target", "Predicted", "Overtime"],
+    datasets: [
+      { type: "bar", label: "Productivity", data: [data.target, data.predicted, data.overtime] },
+      { type: "line", label: "Trend Line", data: [data.target, data.predicted, data.overtime] }
+    ]
+  }
+});
+</script>
+
+</body>
+</html>
